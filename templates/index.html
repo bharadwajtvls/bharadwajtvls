@@ -39,7 +39,7 @@
 	<h1>బారసాల మరియు నామకరణం మహోత్సవం ఆహ్వానం</h1>
 	<div>
     <p>The number of guests attending is: <span id="cntr">1</span>
-       The number of guests blessing is: <span id="cntr1">1</span></p>
+<!--        The number of guests blessing is: <span id="cntr1">1</span></p> -->
   </div>
 </header>
 <body>
@@ -107,6 +107,7 @@
 
 <script>
     function updateGuestCount() {
+	    document.getElementById("cntr").innerText = attendingCount;
         fetch('/get_guests')
             .then(response => response.json())
             .then(data => {
