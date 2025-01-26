@@ -62,110 +62,134 @@
 <h3><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3807.0419195198833!2d78.59906167377059!3d17.40977580216258!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb9ef2eb13e65f%3A0xec7c61a16af9eca5!2sSVM%20Grand%20Medipally!5e0!3m2!1sen!2sin!4v1737609397604!5m2!1sen!2sin" 
 	    width="300" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></h3>
 </div>
-</div>
-	<label for="name">Enter name
-		<input id="name" type="text">
-	<button id="attbutton" type="button" onclick="addData()" name="Attending">Attending</button>
-	<button id="blessing" type="button" onclick="blessingfun()" name="Blessing">Blessing online</button>
-	<p id="W"></p>
-	<h3>Guest details:</h3>
-	<div class='parent grid-parent'>
-		<div id="A" class='child'>
-	<table id="outputTable" align="center">
-        <tr>
-            <th>Name</th>
-            <th>Sl.no</th>
-            <th>Action</th>
-            <!-- <th>Change</th> -->
-        </tr>
+<section id="guest-form">
+    <h2>Enter Guest Details</h2>
+    <label for="name">Name:</label>
+    <input type="text" id="name" placeholder="Enter guest name">
+    <br><br>
+    <button onclick="addData()">Attending</button>
+    <button onclick="blessingfun()">Blessing Online</button>
+    <p id="status-message"></p>
+</section>
+
+<section id="guest-list">
+    <h2>Guest List</h2>
+    <table id="attending-table">
+        <thead>
+            <tr>
+                <th>Sl. No.</th>
+                <th>Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Attending guests will be added here -->
+        </tbody>
     </table>
-</div>
-<div id="B" class='child'>
-    <table id="outputTable1" align="center">
-        <tr>
-            <th>Name</th>
-            <th>Sl.no</th>
-            <th>Action</th>
-            <!-- <th>Change</th> -->
-        </tr>
+
+    <table id="blessing-table">
+        <thead>
+            <tr>
+                <th>Sl. No.</th>
+                <th>Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Blessing guests will be added here -->
+        </tbody>
     </table>
-</div>
-</div>
-	<script>
-		function load(){
-			// localStorage.clear();
-			document.getElementById("outputTable").innerHTML = localStorage.getItem("userData");
-			document.getElementById("outputTable1").innerHTML = localStorage.getItem("userData1");
-		}
-		function addData() {
-            // Get input values
-            // Get the table and insert a new row at the end
-            let table = document.getElementById("outputTable");
+</section>
 
-            let name = document.getElementById("name").value;
-            let slno = table.rows.length+1;
-            let action = document.getElementById("attbutton").name;          
-            let newRow = table.insertRow(table.rows.length);
+<footer>
+    <p>Developed by Bharadwaj</p>
+</footer>
 
-            // Insert data into cells of the new row
-            newRow.insertCell(0).innerHTML = slno;
-            newRow.insertCell(1).innerHTML = name;
-            newRow.insertCell(2).innerHTML = action
-            // newRow.insertCell(3).innerHTML =
-            //     '<button onclick="editData(this)">Edit</button>';
-            localStorage
-                .setItem('userData', document.getElementById('outputTable').innerHTML);
-            EnterName();
-            clearInputs();
-            
-        }
-        function blessingfun() {
-            // Get input values
-            // Get the table and insert a new row at the end
-            let table = document.getElementById("outputTable1");
+<script>
+    function updateGuestCount() {
+        fetch('/get_guests')
+            .then(response => response.json())
+            .then(data => {
+                const attendingTable = document.querySelector("#attending-table tbody");
+                const blessingTable = document.querySelector("#blessing-table tbody");
+                attendingTable.innerHTML = '';
+                blessingTable.innerHTML = '';
 
-            let name = document.getElementById("name").value;
-            let slno = table.rows.length+1;
-            let action = document.getElementById("blessing").name;
-            let newRow = table.insertRow(table.rows.length);
+                let attendingCount = 0;
+                let blessingCount = 0;
+                let slNo = 1;
 
-            // Insert data into cells of the new row
-            newRow.insertCell(0).innerHTML = slno;
-            newRow.insertCell(1).innerHTML = name;
-            newRow.insertCell(2).innerHTML = action
-            // newRow.insertCell(3).innerHTML =
-            //     '<button onclick="editData(this)">Edit</button>';
-            localStorage
-                .setItem('userData1', document.getElementById('outputTable1').innerHTML);
-           blessing();
-            clearInputs();
-            
-        }
-		function EnterName() {
-			let user = document.getElementById("name").value;
+                data.forEach(guest => {
+                    const row = `
+                        <tr>
+                            <td>${slNo++}</td>
+                            <td>${guest.name}</td>
+                            <td>${guest.action}</td>
+                        </tr>
+                    `;
 
-			document.getElementById("W").innerHTML =
-				"Welcome Guest " + user;
+                    if (guest.action === "Attending") {
+                        attendingTable.innerHTML += row;
+                        attendingCount++;
+                    } else if (guest.action === "Blessing") {
+                        blessingTable.innerHTML += row;
+                        blessingCount++;
+                    }
+                });
 
-		}
-		function blessing(){
-			let user = document.getElementById("name").value;
-			document.getElementById("W").innerHTML =
-				"Thank you for your blessings " + user;
-		}
-		function counter_fn() {
-      var counter = document.getElementById("cntr");
-      var counter1 = document.getElementById("cntr1");
-      let table = document.getElementById("outputTable");
-      counter.innerHTML = table.rows.length;
-      let table1 = document.getElementById("outputTable1");
-      counter1.innerHTML = table1.rows.length;
+                document.getElementById("attending-count").innerText = attendingCount;
+                document.getElementById("blessing-count").innerText = blessingCount;
+            })
+            .catch(error => console.error('Error fetching guest data:', error));
     }
-    function clearInputs() {
-            document.getElementById("name").value = "";
+
+    function addData() {
+        const name = document.getElementById("name").value;
+        if (!name) {
+            alert("Please enter a name.");
+            return;
         }
-    window.onload = counter_fn;
-	</script>
-	<script type="text/javascript">load()</script>
-	<mark>Developed by: Bharadwaj</mark>
+
+        fetch('/add_guest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, action: "Attending" }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("status-message").innerText = data.message;
+                updateGuestCount();
+                document.getElementById("name").value = "";
+            })
+            .catch(error => console.error('Error adding guest:', error));
+    }
+
+    function blessingfun() {
+        const name = document.getElementById("name").value;
+        if (!name) {
+            alert("Please enter a name.");
+            return;
+        }
+
+        fetch('/add_guest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, action: "Blessing" }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("status-message").innerText = data.message;
+                updateGuestCount();
+                document.getElementById("name").value = "";
+            })
+            .catch(error => console.error('Error adding guest:', error));
+    }
+
+    // Fetch guests on page load
+    window.onload = updateGuestCount;
+</script>
 </html></body>
